@@ -5,6 +5,7 @@ from matplotlib import pyplot
 import seaborn as sns
 from pandas import read_csv
 from pandas.plotting import scatter_matrix
+from seaborn import scatterplot
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -88,14 +89,15 @@ dataset.hist('container')
 plt.show()
 #przy container,brand, city konkretne wartosci typu 1 ,2 oznaczaja miasta/rodzaj opakowania/marke
 
-
-#scatter plot matrix
-scatter_matrix(dataset)
-plt.show()
+sns.relplot(x=dataset['price'], y=dataset['container'])
+sns.relplot(x=dataset['price'], y=dataset['brand'])
+sns.relplot(x=dataset['price'], y=dataset['quantity']) #zaleznosc cena ilosc 
+sns.relplot(x=dataset['city'], y=dataset['pop']) 
+sns.relplot(x=dataset['city'], y=dataset['quantity']) 
 
 #podzial na train i test
-train_dataset= dataset.sample(frac=0.8, random_state=0)
-test_dataset=dataset.drop(train_dataset.index)
+#train_dataset= dataset.sample(frac=0.8, random_state=0)
+#test_dataset=dataset.drop(train_dataset.index)
 
 
 
