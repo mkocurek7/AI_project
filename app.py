@@ -57,17 +57,37 @@ print(dataset.isnull().sum())
 #null_data = dataset[dataset.isnull().any(axis=1)]
 #print(null_data)
 
-
 print(dataset.describe()) #opis statystyczny danych :)
 
-#DIAGRAMY-> TODO: tak zeby nie brało wszystkich kolumn typu id...
-    # wykresy wasy-box and whisker plots
-dataset.plot(kind='box', subplots=True, layout=(10,10), sharex=False, sharey=False)
+#DIAGRAMY
+print("")
+#wykresy wasy-box 
+dataset.columns
+print('pop')
+plt.boxplot(dataset['pop'])
+plt.show()
+print('price')
+plt.boxplot(dataset['price'])
+plt.show()
+print('quantity')
+plt.boxplot(dataset['quantity'])
 plt.show()
 
-    #histogramy
-dataset.hist()
+#histogramy (lat-> latitude , long-> longitude)
+dataset.hist('pop')
 plt.show()
+dataset.hist('price')
+plt.show()
+dataset.hist('quantity')
+plt.show()
+dataset.hist('city')
+plt.show()
+dataset.hist('brand')
+plt.show()
+dataset.hist('container')
+plt.show()
+#przy container,brand, city konkretne wartosci typu 1 ,2 oznaczaja miasta/rodzaj opakowania/marke
+
 
 #scatter plot matrix
 scatter_matrix(dataset)
