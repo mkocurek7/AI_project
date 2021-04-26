@@ -116,7 +116,7 @@ sns.relplot(x=dataset['city'], y=dataset['quantity'])
 # axis=1 powoduje ze indeksy nie beda uwzgldniane podczas trenowania
 
 # nie wiem czy daty tez nie wyrzucic z x
-x = dataset.drop("quantity", axis=1)
+x = dataset.drop(["quantity", "date"], axis=1)
 y = dataset["quantity"]
 
 dataset["quantity"].hist()
@@ -125,9 +125,9 @@ y -= 1
 
 print(dataset["quantity"].value_counts())
 
-#zaokraglenie danych w kolumnie quatity tak by bylo mniej przedzialow  TODO:
+#opcjonalnie - zaokraglenie danych w kolumnie quatity tak by bylo mniej przedzialow  TODO:
 
-x_train, x_test, y_train, y_test = ms.train_test_split(x, y, train_size=0.8, test_size=0.2, stratify=y)
+x_train, x_test, y_train, y_test = ms.train_test_split(x, y, train_size=0.8, test_size=0.2, random_state=None, shuffle=False) #, stratify=y
 
 model = keras.models.Sequential([
     # definicja pierwszej wartwy - argumentem jest liczba zmiennych wejsciowych
@@ -153,8 +153,13 @@ model.compile(
     metrics=["accuracy"]
 )
 
+
+print(x.value_counts())
 model.summary()
-model.fir(x_train, y_train, epochs=300, validation_data=(x_test, y_test))
+#zmapowac opakowania o danej pojemnosci do intow
+x_train=np.asarray(x_train).astype(np.int)
+y_train=np.asarray(y_train).astype(np.int)
+model.fit(x_train, y_train, epochs=300, validation_data=(x_test, y_test))
 
 
 
