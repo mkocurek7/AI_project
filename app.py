@@ -50,6 +50,9 @@ def encode_dates(df, column):
     return df
 
 
+
+
+
 # zamiana kolumny date na kolumny year,month,day
 dataset = encode_dates(dataset, column='date')
 # wyswietlenie danych statystycznych zbioru danych
@@ -188,8 +191,6 @@ y_test_scaled = y_scaler.transform(y_test.values.reshape(-1, 1))
 #model_1.summary()
 #model_1_history = model_1.fit(x_train_scaled, y_train_scaled, epochs=50, validation_data=(x_test_scaled, y_test_scaled))
 #
-##TODO ew. zrobic funckje tworzaca wykresy i wypisujaca metryki dla historii modelu przekazywanej w argumencie - bedzie czystszy kod
-
 #
 #y_predicted = model_1.predict(x_test_scaled)
 #plt.clf()
@@ -257,10 +258,10 @@ y_test_scaled = y_scaler.transform(y_test.values.reshape(-1, 1))
 #model_2.compile(
 #    loss="mse",  # mae, msle
 #    optimizer="adam",
-#    metrics=["MAPE", "mae", "cosine_similarity"]  # MSLE #MAPE #MASE #R2
+#    metrics=["mape", "mae", "cosine_similarity"]  # MSLE #MAPE #MASE #R2
 #)
 #model_2.summary()
-#model_2_history = model_2.fit(x_train_scaled, y_train_scaled, epochs=50, validation_data=(x_test_scaled, y_test_scaled))
+#model_2_history = model_2.fit(x_train_scaled, y_train_scaled, epochs=100, validation_data=(x_test_scaled, y_test_scaled))
 #
 #y_predicted = model_2.predict(x_test_scaled)
 #plt.clf()
@@ -310,14 +311,9 @@ y_test_scaled = y_scaler.transform(y_test.values.reshape(-1, 1))
 #print("R2_score: ", sklearn.metrics.r2_score(y_test_scaled, y_predicted))
 #print("mean_squared_error: ", sklearn.metrics.mean_squared_error(y_test_scaled, y_predicted))
 #print("mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_test_scaled, y_predicted))
-#
-#print("y_predicted.shape", y_predicted.shape)
-#print("y_test.shape", y_test.shape)
-#errors = abs(y_predicted.reshape(-1,)-y_test)/y_test
-#print(np.sum(errors > 0.5))
+
 
 # Model 3
-
 model_3 = keras.models.Sequential([
     keras.layers.Input(shape=x_train.shape[1], name="input"),
     keras.layers.Dense(600, activation="tanh"),  # tanh #relu #gelu
@@ -329,29 +325,61 @@ model_3 = keras.models.Sequential([
 model_3.compile(
     loss="mse",  # mae, msle
     optimizer="adam",
-    metrics=["MAPE", "mae", "cosine_similarity"]  # MSLE #MAPE #MASE #R2
+    metrics=["mape", "mae", "cosine_similarity"]  # MSLE #MAPE #MASE #R2
 )
 model_3.summary()
-model_3_history = model_3.fit(x_train_scaled, y_train_scaled, epochs=100, validation_data=(x_test_scaled, y_test_scaled))
+model_3_history = model_3.fit(x_train_scaled, y_train_scaled, epochs=150, validation_data=(x_test_scaled, y_test_scaled))
 
 y_predicted = model_3.predict(x_test_scaled)
 plt.clf()
-fig = plt.figure()
 plt.scatter(x=y_predicted, y=y_test_scaled, marker='.')
 plt.xlabel('y_predicted')
 plt.ylabel('y_test_scaled')
-plt.title('Model 1')
+plt.title('Model 3')
 plt.show()
 
+plt.plot(y_predicted[:200], label='Y predicted')
+plt.plot(y_test_scaled[:200], label='Y test scaled')
+plt.title('Model 3')
+plt.legend()
+plt.show()
+
+plt.plot(model_3_history.history["loss"], label='loss')
+plt.plot(model_3_history.history["val_loss"], label='val_loss')
+plt.title('Model 3')
+plt.legend()
+plt.show()
+
+plt.plot(model_3_history.history["mape"], label='loss')
+plt.plot(model_3_history.history["val_mape"], label='val_loss')
+plt.legend()
+plt.title('Model 3')
+plt.show()
+
+plt.plot(model_3_history.history["mape"], label='mape')
+plt.plot(model_3_history.history["val_mape"], label='mape_val')
+plt.legend()
+plt.title('Model 3')
+plt.show()
+
+plt.plot(model_3_history.history["mae"], label='mae')
+plt.plot(model_3_history.history["val_mae"], label='mae_val')
+plt.legend()
+plt.title('Model 3')
+plt.show()
+
+plt.plot(model_3_history.history["cosine_similarity"], label='cosine_similarity')
+plt.plot(model_3_history.history["val_cosine_similarity"], label='val_cosine_similarity')
+plt.legend()
+plt.title('Model 3')
+plt.show()
+
+# formulka do kopiowania do kazdego z modeli
 print("R2_score: ", sklearn.metrics.r2_score(y_test_scaled, y_predicted))
 print("mean_squared_error: ", sklearn.metrics.mean_squared_error(y_test_scaled, y_predicted))
 print("mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_test_scaled, y_predicted))
 
-print("y_predicted.shape", y_predicted.shape)
-print("y_test.shape", y_test.shape)
-errors = abs(y_predicted.reshape(-1,)-y_test)/y_test
-print(np.sum(errors > 0.5))
-
+# mozna tez zrobic model po wywaleniu zmiennej mocno skorelowanej z qunatity(brand)
 
 # TODO dodatkowe architektury sieci(inne wartswy, metryki, funkcje uczace itd),
 # TODO wykresy przedstawiajace wartosci metryk w epokach,
@@ -360,3 +388,4 @@ print(np.sum(errors > 0.5))
 # TODO do sprawka wrzucic histogram zmiennej wyjsciowej(z przedzialami), dataset.describe,
 # TODO ew. zrobic funckje tworzaca wykresy, eksportujaca ja do folderow odpowiednich
 # TODO i wypisujaca metryki dla historii modelu przekazywanej w argumencie - bedzie czystszy kod
+
