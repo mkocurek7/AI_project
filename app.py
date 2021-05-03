@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,12 +24,8 @@ dataset = raw_data.copy()
 table = pd.pivot_table(dataset, values='quantity', index=['city', 'shop', 'brand'], columns='container', aggfunc=np.sum)
 # print(table)
 
-# jesli miałby sie czepiac ze dane lekko zmodyfikowane a nie surowe z kaggle:
-# pobranie danych z train.csv i tets.csv-> TODO:
 # dataset = dataset.dropna() #usuwa nieprawidlowe wiersze z danymi (usuwa takze wiersz gdzie 1 dana jest nieprawidlowa)
 # usunac jak najmniejsza ilosc rekordow-> reszte ladnie zastąpic-> jesli sie da , do przemyslenia
-# no i jesli sie da połączyc train i test i jakos zczytac
-
 
 # organizacja zmiennych jakosciowych-> zamiast nazw sa liczby
 city_map = {'Athens': 1, 'Irakleion': 2, 'Larisa': 3, 'Patra': 4, 'Thessaloniki': 5}
@@ -42,7 +39,7 @@ dataset['brand'] = dataset['brand'].map(brand_map)
 dataset['container'] = dataset['container'].map(container_map)
 dataset['capacity'] = dataset['capacity'].map(container_volume_map)
 
-#moze warto zostawic daty
+
 def encode_dates(df, column):
     df = df.copy()
     df[column] = pd.to_datetime(df[column])
@@ -53,12 +50,16 @@ def encode_dates(df, column):
     return df
 
 
+# zamiana kolumny date na kolumny year,month,day
 dataset = encode_dates(dataset, column='date')
-print(dataset.describe(include='all'))
+# wyswietlenie danych statystycznych zbioru danych
+# print(dataset.describe(include='all'))
+# wyswietlenie macierzy korelacji zmiennych
+# print(dataset.corr().sort_values(by="quantity"))
 
 # brakujace dane i uzupelnianie
-print(dataset.isnull().sum())  # do sprawdzenia gdzie brakuje danych
-
+# print(dataset.isnull().sum())  # do sprawdzenia gdzie brakuje danych
+#
 # jakby byl problem z nullami to odkomentowac konwersje na NaN
 # dataset[['lat','long','container','capacity']]=dataset[['lat','long','container','capacity',]].replace(0,np.nan)
 # dataset['capacity']=dataset['capacity'].replace(0,np.nan)
@@ -126,111 +127,236 @@ dataset = dataset.astype({"brand": "int"})
 dataset = dataset.astype({"container": "int"})
 dataset = dataset.astype({"shop": "int"})
 
-# dataset.pop("lat")
-# dataset.pop("long")
-# dataset.pop("date")
-
 dataset.info()
 
 x = dataset.drop('quantity', axis=1).copy()
 y = dataset['quantity'].copy()
 
 y -= 1
-# print(y)
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, test_size=0.2, random_state=42, shuffle=False)
 y_train.hist()
-plt.ylabel('Y_TRAIN')
+plt.xlabel('Quantity')
+plt.ylabel('Number of records in range')
+plt.title('Quantity histogram')
 plt.show()
 
-#podglad do danych
-#dataset.info()
-#dataset.to_csv("aaaa.csv")
+# podglad do danych
+# dataset.info()
+# dataset.to_csv("aaaa.csv")
 
-
-#MODEL NR 1
-
-model = keras.models.Sequential([
-    # definicja pierwszej wartwy - argumentem jest liczba zmiennych wejsciowych
-    keras.layers.Input(shape=x_train.shape[1], name="input"),
-    # definicja warstw ukrytych - pierwszy argument to ilosc neuronow na warstwie, drugi to funkcja aktywacji
-    # z definicjami warstw ukrytych powinno sie eksperymentowac poprzez np zmiane liczby neuronow na warstwie
-
-    # zrobic iles tam roznych konfiguracji z roznymi funkcji aktywacji, innymi wagami itd
-    keras.layers.Dense(800, activation="tanh"),  # tanh #relu #gelu
-    keras.layers.Dense(700, activation="tanh"),
-    keras.layers.Dense(400, activation="tanh"),
-    keras.layers.Dense(300, activation="tanh"),
-    keras.layers.Dense(200, activation="tanh"),
-    keras.layers.Dense(150, activation="tanh"),
-    keras.layers.Dense(100, activation="tanh"),
-    # pierszy argument - liczba neuronow wyjsciowych
-    keras.layers.Dense(1, name="output")  # , activation="softmax")
-])
-
-model.compile(
-    # funkcja straty
-    loss="mse",
-    # algorytm wyznaczania wag
-    optimizer="adam",
-    # metryki procesu uczenia
-    metrics=["MAPE"]  # MSLE #MAPE #MASE
-)
-model.summary()
-
-#model_history = model.fit(x_train, y_train, epochs=100, validation_data=(x_test, y_test))
-#plt.plot(model_history.history["MAPE"])
-#np.max(model_history.history["MAPE"])
-
-
-#MODEL NR 2
-
+#skalowac wszystkie kolumny czy tylko te nie pochodzace od stringa?
+# MODEL NR 1
 x_scaler = StandardScaler().fit(x_train)
-x_train_scaled=x_scaler.transform(x_train)
-x_test_scaled=x_scaler.transform(x_test)
+x_train_scaled = x_scaler.transform(x_train)
+x_test_scaled = x_scaler.transform(x_test)
 
 y_scaler = StandardScaler().fit(y_train.values.reshape(-1, 1))
-y_train_scaled=y_scaler.transform(y_train.values.reshape(-1, 1))
-y_test_scaled=y_scaler.transform(y_test.values.reshape(-1, 1))
+y_train_scaled = y_scaler.transform(y_train.values.reshape(-1, 1))
+y_test_scaled = y_scaler.transform(y_test.values.reshape(-1, 1))
 
-scaled_model = keras.models.Sequential([
+#model_1 = keras.models.Sequential([
+#    # definicja pierwszej wartwy - argumentem jest liczba zmiennych wejsciowych
+#    keras.layers.Input(shape=x_train.shape[1], name="input"),
+#    # definicja warstw ukrytych - pierwszy argument to ilosc neuronow na warstwie, drugi to funkcja aktywacji
+#    # z definicjami warstw ukrytych powinno sie eksperymentowac poprzez np zmiane liczby neuronow na warstwie
+#    # zrobic iles tam roznych konfiguracji z roznymi funkcji aktywacji, innymi wagami itd
+#    keras.layers.Dense(1000, activation="gelu"),  # tanh #relu #gelu
+#    keras.layers.Dense(900, activation="gelu"),
+#    keras.layers.Dense(850, activation="gelu"),
+#    keras.layers.Dense(800, activation="gelu"),
+#    keras.layers.Dense(700, activation="gelu"),
+#    keras.layers.Dense(600, activation="gelu"),
+#    keras.layers.Dense(550, activation="gelu"),
+#    keras.layers.Dense(500, activation="gelu"),
+#    keras.layers.Dense(400, activation="gelu"),
+#    keras.layers.Dense(300, activation="gelu"),
+#    keras.layers.Dense(200, activation="gelu"),
+#    keras.layers.Dense(150, activation="gelu"),
+#    keras.layers.Dense(100, activation="gelu"),
+#    # pierszy argument - liczba neuronow wyjsciowych
+#    keras.layers.Dense(1, name="output")  # , activation="softmax")
+#])
+#model_1.compile(
+#    # funkcja straty
+#    loss="mse", # mae, msle, mape, mse
+#    # algorytm wyznaczania wag
+#    optimizer="adam",
+#    # metryki procesu uczenia
+#    metrics=["mape", "mae", "cosine_similarity"]  # MSLE,MAPE,MASE, mape, mae, cosine_proximity
+#)
+#model_1.summary()
+#model_1_history = model_1.fit(x_train_scaled, y_train_scaled, epochs=50, validation_data=(x_test_scaled, y_test_scaled))
+#
+##TODO ew. zrobic funckje tworzaca wykresy i wypisujaca metryki dla historii modelu przekazywanej w argumencie - bedzie czystszy kod
+
+#
+#y_predicted = model_1.predict(x_test_scaled)
+#plt.clf()
+#fig = plt.figure()
+#plt.scatter(x=y_predicted, y=y_test_scaled, marker='.')
+#plt.xlabel('y_predicted')
+#plt.ylabel('y_test_scaled')
+#plt.title('Model 1')
+#plt.show()
+#
+#plt.plot(y_predicted[:200], label='Y predicted')
+#plt.plot(y_test_scaled[:200], label='Y test scaled')
+#plt.legend()
+#plt.title('Model 1')
+#plt.show()
+#
+#plt.plot(model_1_history.history["loss"], label='loss')
+#plt.plot(model_1_history.history["val_loss"], label='val_loss')
+#plt.legend()
+#plt.title('Model 1')
+#plt.show()
+#
+#plt.plot(model_1_history.history["mape"], label='loss')
+#plt.plot(model_1_history.history["val_mape"], label='val_loss')
+#plt.legend()
+#plt.title('Model 1')
+#plt.show()
+#
+#plt.plot(model_1_history.history["mape"], label='mape')
+#plt.plot(model_1_history.history["val_mape"], label='mape_val')
+#plt.legend()
+#plt.title('Model 1')
+#plt.show()
+#
+#
+#plt.plot(model_1_history.history["mae"], label='mae')
+#plt.plot(model_1_history.history["val_mae"], label='mae_val')
+#plt.legend()
+#plt.title('Model 1')
+#plt.show()
+#
+#plt.plot(model_1_history.history["cosine_similarity"], label='cosine_similarity')
+#plt.plot(model_1_history.history["val_cosine_similarity"], label='val_cosine_similarity')
+#plt.legend()
+#plt.title('Model 1')
+#plt.show()
+#
+#print("R2_score: ", sklearn.metrics.r2_score(y_test_scaled, y_predicted))
+#print("mean_squared_error: ", sklearn.metrics.mean_squared_error(y_test_scaled, y_predicted))
+#print("mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_test_scaled, y_predicted))
+
+# MODEL NR 2
+
+#model_2 = keras.models.Sequential([
+#    keras.layers.Input(shape=x_train.shape[1], name="input"),
+#    keras.layers.Dense(500, activation="relu"),  # tanh #relu #gelu
+#    keras.layers.Dense(500, activation="relu"),
+#    keras.layers.Dense(400, activation="relu"),
+#    keras.layers.Dense(300, activation="relu"),
+#    keras.layers.Dense(250, activation="relu"),
+#    keras.layers.Dense(200, activation="relu"),
+#    keras.layers.Dense(100, activation="relu"),
+#    keras.layers.Dense(1, name="output")  # , activation="softmax")
+#])
+#model_2.compile(
+#    loss="mse",  # mae, msle
+#    optimizer="adam",
+#    metrics=["MAPE", "mae", "cosine_similarity"]  # MSLE #MAPE #MASE #R2
+#)
+#model_2.summary()
+#model_2_history = model_2.fit(x_train_scaled, y_train_scaled, epochs=50, validation_data=(x_test_scaled, y_test_scaled))
+#
+#y_predicted = model_2.predict(x_test_scaled)
+#plt.clf()
+#plt.scatter(x=y_predicted, y=y_test_scaled, marker='.')
+#plt.xlabel('y_predicted')
+#plt.ylabel('y_test_scaled')
+#plt.title('Model 2')
+#plt.show()
+#
+#plt.plot(y_predicted[:200], label='Y predicted')
+#plt.plot(y_test_scaled[:200], label='Y test scaled')
+#plt.title('Model 2')
+#plt.legend()
+#plt.show()
+#
+#plt.plot(model_2_history.history["loss"], label='loss')
+#plt.plot(model_2_history.history["val_loss"], label='val_loss')
+#plt.title('Model 2')
+#plt.legend()
+#plt.show()
+#
+#plt.plot(model_2_history.history["mape"], label='loss')
+#plt.plot(model_2_history.history["val_mape"], label='val_loss')
+#plt.legend()
+#plt.title('Model 2')
+#plt.show()
+#
+#plt.plot(model_2_history.history["mape"], label='mape')
+#plt.plot(model_2_history.history["val_mape"], label='mape_val')
+#plt.legend()
+#plt.title('Model 2')
+#plt.show()
+#
+#plt.plot(model_2_history.history["mae"], label='mae')
+#plt.plot(model_2_history.history["val_mae"], label='mae_val')
+#plt.legend()
+#plt.title('Model 2')
+#plt.show()
+#
+#plt.plot(model_2_history.history["cosine_similarity"], label='cosine_similarity')
+#plt.plot(model_2_history.history["val_cosine_similarity"], label='val_cosine_similarity')
+#plt.legend()
+#plt.title('Model 2')
+#plt.show()
+
+## formulka do kopiowania do kazdego z modeli
+#print("R2_score: ", sklearn.metrics.r2_score(y_test_scaled, y_predicted))
+#print("mean_squared_error: ", sklearn.metrics.mean_squared_error(y_test_scaled, y_predicted))
+#print("mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_test_scaled, y_predicted))
+#
+#print("y_predicted.shape", y_predicted.shape)
+#print("y_test.shape", y_test.shape)
+#errors = abs(y_predicted.reshape(-1,)-y_test)/y_test
+#print(np.sum(errors > 0.5))
+
+# Model 3
+
+model_3 = keras.models.Sequential([
     keras.layers.Input(shape=x_train.shape[1], name="input"),
-    keras.layers.Dense(500, activation="relu"),  # tanh #relu #gelu
-    keras.layers.Dense(500, activation="relu"),
-    keras.layers.Dense(400, activation="relu"),
-    keras.layers.Dense(300, activation="relu"),
-    keras.layers.Dense(250, activation="relu"),
-    keras.layers.Dense(200, activation="relu"),
-    keras.layers.Dense(100, activation="relu"),
+    keras.layers.Dense(600, activation="tanh"),  # tanh #relu #gelu
+    keras.layers.Dense(400, activation="tanh"),
+    keras.layers.Dense(200, activation="tanh"),
+    keras.layers.Dense(100, activation="tanh"),
     keras.layers.Dense(1, name="output")  # , activation="softmax")
 ])
-scaled_model.compile(
+model_3.compile(
     loss="mse",  # mae, msle
     optimizer="adam",
-    metrics=["MAPE"]  # MAPE, R2
+    metrics=["MAPE", "mae", "cosine_similarity"]  # MSLE #MAPE #MASE #R2
 )
-scaled_model.summary()
-scaled_history = scaled_model.fit(x_train_scaled, y_train_scaled, epochs=100, validation_data=(x_test_scaled, y_test_scaled))
+model_3.summary()
+model_3_history = model_3.fit(x_train_scaled, y_train_scaled, epochs=100, validation_data=(x_test_scaled, y_test_scaled))
 
-y_predicted = scaled_model.predict(x_test_scaled)
+y_predicted = model_3.predict(x_test_scaled)
 plt.clf()
 fig = plt.figure()
-plt.scatter(x=y_predicted,y=y_test_scaled,marker='.')
-plt.xlabel('Predicted')
-plt.xlabel('Actual')
+plt.scatter(x=y_predicted, y=y_test_scaled, marker='.')
+plt.xlabel('y_predicted')
+plt.ylabel('y_test_scaled')
+plt.title('Model 1')
 plt.show()
 
-plt.plot(y_predicted[:200], label='Y Predicted')
-plt.plot(y_test_scaled[:200], label='Y test scaled')
-plt.show()
-#TODO poprawic wystwietlania labeli wykresow(rozwazyc uzycie subplotow)
-#formulka do kopiowania do kazdego z modeli
-print(sklearn.metrics.r2_score(y_test_scaled,y_predicted))
-print(sklearn.metrics.mean_squared_error(y_test_scaled,y_predicted))
-print(sklearn.metrics.mean_absolute_error(y_test_scaled,y_predicted))
+print("R2_score: ", sklearn.metrics.r2_score(y_test_scaled, y_predicted))
+print("mean_squared_error: ", sklearn.metrics.mean_squared_error(y_test_scaled, y_predicted))
+print("mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_test_scaled, y_predicted))
 
-#TODO dodatkowe architektury sieci(inne wartswy, metryki, funkcje uczace itd),
-#TODO wykresy przedstawiajace wartosci metryk w epokach,
-#TODO ew. porownanie ich z tymi z kaggla
+print("y_predicted.shape", y_predicted.shape)
+print("y_test.shape", y_test.shape)
+errors = abs(y_predicted.reshape(-1,)-y_test)/y_test
+print(np.sum(errors > 0.5))
 
 
+# TODO dodatkowe architektury sieci(inne wartswy, metryki, funkcje uczace itd),
+# TODO wykresy przedstawiajace wartosci metryk w epokach,
+# TODO ew. porownanie wynikow z tymi z kaggla
+
+# TODO do sprawka wrzucic histogram zmiennej wyjsciowej(z przedzialami), dataset.describe,
+# TODO ew. zrobic funckje tworzaca wykresy, eksportujaca ja do folderow odpowiednich
+# TODO i wypisujaca metryki dla historii modelu przekazywanej w argumencie - bedzie czystszy kod
