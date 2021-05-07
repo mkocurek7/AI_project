@@ -72,7 +72,7 @@ print(dataset.isnull().sum())
 # null_data = dataset[dataset.isnull().any(axis=1)]
 # print(null_data)
 
-print(dataset.describe())  # opis statystyczny danych :)
+#print(dataset.describe())  # opis statystyczny danych :)
 
 # DIAGRAMY
 # print("")
@@ -126,7 +126,7 @@ dataset = dataset.astype({"brand": "int"})
 dataset = dataset.astype({"container": "int"})
 dataset = dataset.astype({"shop": "int"})
 
-dataset.info()
+#dataset.info()
 
 x = dataset.drop('quantity', axis=1).copy()  # x = dataset.drop(['quantity','brand'], axis=1).copy()
 y = dataset['quantity'].copy()
@@ -146,265 +146,346 @@ plt.show()
 
 # skalowac wszystkie kolumny czy tylko te nie pochodzace od stringa?
 # MODEL NR 1
-x_scaler = StandardScaler().fit(x_train)
-x_train_scaled = x_scaler.transform(x_train)
-x_test_scaled = x_scaler.transform(x_test)
+#x_scaler = StandardScaler().fit(x)
+#y_scaler = StandardScaler().fit(y.values.reshape(-1, 1))
 
-y_scaler = StandardScaler().fit(y_train.values.reshape(-1, 1))
-y_train_scaled = y_scaler.transform(y_train.values.reshape(-1, 1))
-y_test_scaled = y_scaler.transform(y_test.values.reshape(-1, 1))
-
-model_1 = keras.models.Sequential([
-   # definicja pierwszej wartwy - argumentem jest liczba zmiennych wejsciowych
-   keras.layers.Input(shape=x_train.shape[1], name="input"),
-   # definicja warstw ukrytych - pierwszy argument to ilosc neuronow na warstwie, drugi to funkcja aktywacji
-   # z definicjami warstw ukrytych powinno sie eksperymentowac poprzez np zmiane liczby neuronow na warstwie
-   # zrobic iles tam roznych konfiguracji z roznymi funkcji aktywacji, innymi wagami itd
-   keras.layers.Dense(100, activation="gelu"),  # tanh #relu #gelu
-   keras.layers.Dense(50, activation="gelu"),
-   keras.layers.Dense(30, activation="gelu"),
-   # pierszy argument - liczba neuronow wyjsciowych
-   keras.layers.Dense(1, name="output")  # , activation="softmax")
-])
-model_1.compile(
-   # funkcja straty
-   loss="mse", # mae, msle, mape, mse
-   # algorytm wyznaczania wag
-   optimizer="adam",
-   # metryki procesu uczenia
-   metrics=["msle", "mae", "cosine_similarity"]  # MSLE,MAPE,MASE, mape, mae, cosine_proximity
-)
-model_1.summary()
-model_1_history = model_1.fit(x_train_scaled, y_train_scaled, epochs=500, validation_data=(x_test_scaled, y_test_scaled))
-y_predicted = model_1.predict(x_test_scaled)
-plt.clf()
-fig = plt.figure()
-plt.scatter(x=y_predicted, y=y_test_scaled, marker='.')
-plt.xlabel('y_predicted')
-plt.ylabel('y_test_scaled')
-plt.title('Model 1')
-plt.show()
-plt.plot(y_predicted[:300], label='Y predicted')
-plt.plot(y_test_scaled[:300], label='Y test scaled')
-plt.legend()
-plt.title('Model 1')
-plt.show()
-plt.plot(model_1_history.history["loss"], label='loss(mse)')
-plt.plot(model_1_history.history["val_loss"], label='val_loss(mse)')
-plt.legend()
-plt.title('Model 1')
-plt.show()
-plt.plot(model_1_history.history["msle"], label='msle')
-plt.plot(model_1_history.history["val_msle"], label='msle_val')
-plt.legend()
-plt.title('Model 1')
-plt.show()
-plt.plot(model_1_history.history["mae"], label='mae')
-plt.plot(model_1_history.history["val_mae"], label='mae_val')
-plt.legend()
-plt.title('Model 1')
-plt.show()
-plt.plot(model_1_history.history["cosine_similarity"], label='cosine_similarity')
-plt.plot(model_1_history.history["val_cosine_similarity"], label='cosine_similarity_val')
-plt.legend()
-plt.title('Model 1')
-plt.show()
-
-print("R2_score: ", sklearn.metrics.r2_score(y_test_scaled, y_predicted))
-print("mean_squared_error: ", sklearn.metrics.mean_squared_error(y_test_scaled, y_predicted))
-print("mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_test_scaled, y_predicted))
-print("mean_absolute_percentage_error",sklearn.metrics.mean_absolute_percentage_error(y_test_scaled, y_predicted))
+#x_scaler = StandardScaler().fit(x_train)
+#x_train_scaled = x_scaler.transform(x_train)
+#x_test_scaled = x_scaler.transform(x_test)
 #
-#MODEL NR 2
-
-model_2 = keras.models.Sequential([
-   keras.layers.Input(shape=x_train.shape[1], name="input"),
-   keras.layers.Dense(500, activation="relu"),  # tanh #relu #gelu
-   keras.layers.Dense(500, activation="relu"),
-   keras.layers.Dense(400, activation="relu"),
-   keras.layers.Dense(300, activation="relu"),
-   keras.layers.Dense(250, activation="relu"),
-   keras.layers.Dense(200, activation="relu"),
-   keras.layers.Dense(100, activation="relu"),
-   keras.layers.Dense(1, name="output")  # , activation="softmax")
-])
-model_2.compile(
-   loss="mse",  # mae, msle
-   optimizer="adam",
-   metrics=["msle", "mae", "cosine_similarity"]  # MSLE #MAPE #MASE #R2
-)
-model_2.summary()
-model_2_history = model_2.fit(x_train_scaled, y_train_scaled, epochs=200, validation_data=(x_test_scaled, y_test_scaled))
-y_predicted = model_2.predict(x_test_scaled)
-plt.clf()
-plt.scatter(x=y_predicted, y=y_test_scaled, marker='.')
-plt.xlabel('y_predicted')
-plt.ylabel('y_test_scaled')
-plt.title('Model 2')
-plt.show()
-plt.plot(y_predicted[:300], label='Y predicted')
-plt.plot(y_test_scaled[:300], label='Y test scaled')
-plt.title('Model 2')
-plt.legend()
-plt.show()
-plt.plot(model_2_history.history["loss"], label='loss(mse)')
-plt.plot(model_2_history.history["val_loss"], label='val_loss(val_mse)')
-plt.title('Model 2')
-plt.legend()
-plt.show()
-plt.plot(model_2_history.history["mae"], label='mae')
-plt.plot(model_2_history.history["val_mae"], label='mae_val')
-plt.legend()
-plt.title('Model 2')
-plt.show()
-#plt.plot(model_2_history.history["msle"], label='msle')
-#plt.plot(model_2_history.history["val_msle"], label='msle_val')
-#plt.legend()
-#plt.title('Model 2')
+#y_scaler = StandardScaler().fit(y_train.values.reshape(-1, 1))
+#y_train_scaled = y_scaler.transform(y_train.values.reshape(-1, 1))
+#y_test_scaled = y_scaler.transform(y_test.values.reshape(-1, 1))
+#
+#model_1 = keras.models.Sequential([
+#   # definicja pierwszej wartwy - argumentem jest liczba zmiennych wejsciowych
+#   keras.layers.Input(shape=x_train.shape[1], name="input"),
+#   # definicja warstw ukrytych - pierwszy argument to ilosc neuronow na warstwie, drugi to funkcja aktywacji
+#   # z definicjami warstw ukrytych powinno sie eksperymentowac poprzez np zmiane liczby neuronow na warstwie
+#   # zrobic iles tam roznych konfiguracji z roznymi funkcji aktywacji, innymi wagami itd
+#   keras.layers.Dense(100, activation="gelu"),  # tanh #relu #gelu
+#   keras.layers.Dense(50, activation="gelu"),
+#   keras.layers.Dense(30, activation="gelu"),
+#   # pierszy argument - liczba neuronow wyjsciowych
+#   keras.layers.Dense(1, name="output")  # , activation="softmax")
+#])
+#model_1.compile(
+#   # funkcja straty
+#   loss="mse", # mae, msle, mape, mse
+#   # algorytm wyznaczania wag
+#   optimizer="adam",
+#   # metryki procesu uczenia
+#   metrics=["msle", "mae", "cosine_similarity"]  # MSLE,MAPE,MASE, mape, mae, cosine_proximity
+#)
+#model_1.summary()
+#model_1_history = model_1.fit(x_train_scaled, y_train_scaled, epochs=300, validation_data=(x_test_scaled, y_test_scaled))
+#
+#y_test_predicted = model_1.predict(x_test_scaled)
+#plt.clf()
+#fig = plt.figure()
+#plt.scatter(x=y_test_predicted, y=y_test_scaled, marker='.')
+#plt.xlabel('y_test_predicted')
+#plt.ylabel('y_test_scaled')
+#plt.title('Model 1 - test')
 #plt.show()
-plt.plot(model_2_history.history["cosine_similarity"], label='cosine_similarity')
-plt.plot(model_2_history.history["val_cosine_similarity"], label='cosine_similarity_val')
-plt.legend()
-plt.title('Model 2')
-plt.show()
-
-# formulka do kopiowania do kazdego z modeli
-print("R2_score: ", sklearn.metrics.r2_score(y_test_scaled, y_predicted))
-print("mean_squared_error: ", sklearn.metrics.mean_squared_error(y_test_scaled, y_predicted))
-print("mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_test_scaled, y_predicted))
-print("mean_absolute_percentage_error",sklearn.metrics.mean_absolute_percentage_error(y_test_scaled, y_predicted))
-
-print(model_2_history.history["mae"])
-
-#Model 3
-model_3 = keras.models.Sequential([
-    keras.layers.Input(shape=x_train.shape[1], name="input"),
-    keras.layers.Dense(600, activation="tanh"),  # tanh #relu #gelu
-    keras.layers.Dense(400, activation="tanh"),
-    keras.layers.Dense(200, activation="tanh"),
-    keras.layers.Dense(100, activation="tanh"),
-    keras.layers.Dense(1, name="output")  # , activation="softmax")
-])
-
-model_3.compile(
-    loss="mae",  # mae, msle
-    optimizer="sgd",
-    metrics=["msle", "mse", "cosine_similarity"]  # MSLE #MAPE #MASE #R2
-)
-model_3.summary()
-model_3_history = model_3.fit(x_train_scaled, y_train_scaled, epochs=100,
-                              validation_data=(x_test_scaled, y_test_scaled))
-
-y_predicted = model_3.predict(x_test_scaled)
-plt.clf()
-plt.scatter(x=y_predicted, y=y_test_scaled, marker='.')
-plt.xlabel('y_predicted')
-plt.ylabel('y_test_scaled')
-plt.title('Model 3')
-plt.show()
-
-plt.plot(y_predicted[:300], label='Y predicted')
-plt.plot(y_test_scaled[:300], label='Y test scaled')
-plt.title('Model 3')
-plt.legend()
-plt.show()
-
-plt.plot(model_3_history.history["loss"], label='loss(mae)')
-plt.plot(model_3_history.history["val_loss"], label='val_loss(mae)')
-plt.title('Model 3')
-plt.legend()
-plt.show()
-
+#
+#y_train_predicted = model_1.predict(x_train_scaled)
+#plt.clf()
+#plt.scatter(x=y_train_predicted, y=y_train_scaled, marker='.')
+#plt.xlabel('y_train_predicted')
+#plt.ylabel('y_train_scaled')
+#plt.title('Model 1 - train')
+#plt.show()
+#
+#plt.plot(y_test_predicted[:300], label='Y test predicted')
+#plt.plot(y_test_scaled[:300], label='Y test scaled')
+#plt.legend()
+#plt.title('Model 1 - test')
+#plt.show()
+#
+#plt.plot(y_train_predicted[:300], label='Y train predicted')
+#plt.plot(y_train_scaled[:300], label='Y train scaled')
+#plt.legend()
+#plt.title('Model 1 - train')
+#plt.show()
+#
+#plt.plot(model_1_history.history["loss"], label='loss(mse)')
+#plt.plot(model_1_history.history["val_loss"], label='val_loss(mse)')
+#plt.legend()
+#plt.title('Model 1')
+#plt.show()
+#
+#plt.plot(model_1_history.history["msle"], label='msle')
+#plt.plot(model_1_history.history["val_msle"], label='msle_val')
+#plt.legend()
+#plt.title('Model 1')
+#plt.show()
+#
+#plt.plot(model_1_history.history["mae"], label='mae')
+#plt.plot(model_1_history.history["val_mae"], label='mae_val')
+#plt.legend()
+#plt.title('Model 1')
+#plt.show()
+#
+#plt.plot(model_1_history.history["cosine_similarity"], label='cosine_similarity')
+#plt.plot(model_1_history.history["val_cosine_similarity"], label='cosine_similarity_val')
+#plt.legend()
+#plt.title('Model 1')
+#plt.show()
+#
+#print("\n\n(TRAIN) R2_score: ", sklearn.metrics.r2_score(y_train_scaled, y_train_predicted))
+#print("(TRAIN) mean_squared_error: ", sklearn.metrics.mean_squared_error(y_train_scaled, y_train_predicted))
+#print("(TRAIN) mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_train_scaled, y_train_predicted))
+#print("(TEST) R2_score: ", sklearn.metrics.r2_score(y_test_scaled, y_test_predicted))
+#print("(TEST) mean_squared_error: ", sklearn.metrics.mean_squared_error(y_test_scaled, y_test_predicted))
+#print("(TEST) mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_test_scaled, y_test_predicted))
+#
+#del y_train_predicted, y_test_predicted
+#
+##MODEL NR 2
+#model_2 = keras.models.Sequential([
+#   keras.layers.Input(shape=x_train.shape[1], name="input"),
+#   keras.layers.Dense(500, activation="relu"),  # tanh #relu #gelu
+#   keras.layers.Dense(500, activation="relu"),
+#   keras.layers.Dense(400, activation="relu"),
+#   keras.layers.Dense(300, activation="relu"),
+#   keras.layers.Dense(250, activation="relu"),
+#   keras.layers.Dense(200, activation="relu"),
+#   keras.layers.Dense(100, activation="relu"),
+#   keras.layers.Dense(1, name="output")  # , activation="softmax")
+#])
+#model_2.compile(
+#   loss="mse",  # mae, msle
+#   optimizer="adam",
+#   metrics=["msle", "mae", "cosine_similarity"]  # MSLE #MAPE #MASE #R2
+#)
+#model_2.summary()
+#model_2_history = model_2.fit(x_train_scaled, y_train_scaled, epochs=200, validation_data=(x_test_scaled, y_test_scaled))
+#
+#y_test_predicted = model_2.predict(x_test_scaled)
+#plt.clf()
+#fig = plt.figure()
+#plt.scatter(x=y_test_predicted, y=y_test_scaled, marker='.')
+#plt.xlabel('y_test_predicted')
+#plt.ylabel('y_test_scaled')
+#plt.title('Model 2 - test')
+#plt.show()
+#
+#y_train_predicted = model_2.predict(x_train_scaled)
+#plt.clf()
+#plt.scatter(x=y_train_predicted, y=y_train_scaled, marker='.')
+#plt.xlabel('y_train_predicted')
+#plt.ylabel('y_train_scaled')
+#plt.title('Model 2 - train')
+#plt.show()
+#
+#plt.plot(y_test_predicted[:300], label='Y test predicted')
+#plt.plot(y_test_scaled[:300], label='Y test scaled')
+#plt.legend()
+#plt.title('Model 2 - test')
+#plt.show()
+#
+#plt.plot(y_train_predicted[:300], label='Y train predicted')
+#plt.plot(y_train_scaled[:300], label='Y train scaled')
+#plt.legend()
+#plt.title('Model 2 - train')
+#plt.show()
+#
+##plt.plot(model_2_history.history["loss"], label='loss(mse)')
+##plt.plot(model_2_history.history["val_loss"], label='val_loss(val_mse)')
+##plt.title('Model 2')
+##plt.legend()
+##plt.show()
+##
+##plt.plot(model_2_history.history["mae"], label='mae')
+##plt.plot(model_2_history.history["val_mae"], label='mae_val')
+##plt.legend()
+##plt.title('Model 2')
+##plt.show()
+##
+##plt.plot(model_2_history.history["msle"], label='msle')
+##plt.plot(model_2_history.history["val_msle"], label='msle_val')
+##plt.legend()
+##plt.title('Model 2')
+##plt.show()
+##
+##plt.plot(model_2_history.history["cosine_similarity"], label='cosine_similarity')
+##plt.plot(model_2_history.history["val_cosine_similarity"], label='cosine_similarity_val')
+##plt.legend()
+##plt.title('Model 2')
+##plt.show()
+#
+## formulka do kopiowania do kazdego z modeli
+#print("\n\n(TRAIN) R2_score: ", sklearn.metrics.r2_score(y_train_scaled, y_train_predicted))
+#print("(TRAIN) mean_squared_error: ", sklearn.metrics.mean_squared_error(y_train_scaled, y_train_predicted))
+#print("(TRAIN) mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_train_scaled, y_train_predicted))
+#print("(TEST) R2_score: ", sklearn.metrics.r2_score(y_test_scaled, y_test_predicted))
+#print("(TEST) mean_squared_error: ", sklearn.metrics.mean_squared_error(y_test_scaled, y_test_predicted))
+#print("(TEST) mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_test_scaled, y_test_predicted))
+#
+#del y_train_predicted,y_test_predicted
+#
+##Model 3
+#model_3 = keras.models.Sequential([
+#    keras.layers.Input(shape=x_train.shape[1], name="input"),
+#    keras.layers.Dense(200, activation="tanh"),  # tanh #relu #gelu
+#    keras.layers.Dense(100, activation="tanh"),
+#    keras.layers.Dense(100, activation="tanh"),
+#    keras.layers.Dense(10, activation="tanh"),
+#    keras.layers.Dense(1, name="output")  # , activation="softmax")
+#])
+#
+#model_3.compile(
+#    loss="mae",  # mae, msle
+#    optimizer="sgd",
+#    metrics=["msle", "mse", "cosine_similarity"]  # MSLE #MAPE #MASE #R2
+#)
+#model_3.summary()
+#model_3_history = model_3.fit(x_train_scaled, y_train_scaled, epochs=100,
+#                              validation_data=(x_test_scaled, y_test_scaled))
+#
+#y_test_predicted = model_3.predict(x_test_scaled)
+#plt.clf()
+#fig = plt.figure()
+#plt.scatter(x=y_test_predicted, y=y_test_scaled, marker='.')
+#plt.xlabel('y_test_predicted')
+#plt.ylabel('y_test_scaled')
+#plt.title('Model 3 - test')
+#plt.show()
+#
+#y_train_predicted = model_3.predict(x_train_scaled)
+#plt.clf()
+#plt.scatter(x=y_train_predicted, y=y_train_scaled, marker='.')
+#plt.xlabel('y_train_predicted')
+#plt.ylabel('y_train_scaled')
+#plt.title('Model 3 - train')
+#plt.show()
+#
+#plt.plot(y_test_predicted[:300], label='Y test predicted')
+#plt.plot(y_test_scaled[:300], label='Y test scaled')
+#plt.legend()
+#plt.title('Model 3 - test')
+#plt.show()
+#
+#plt.plot(y_train_predicted[:300], label='Y train predicted')
+#plt.plot(y_train_scaled[:300], label='Y train scaled')
+#plt.legend()
+#plt.title('Model 3 - train')
+#plt.show()
+#
 #plt.plot(model_3_history.history["msle"], label='msle')
 #plt.plot(model_3_history.history["val_msle"], label='val_msle')
 #plt.legend()
 #plt.title('Model 3')
 #plt.show()
-
-plt.plot(model_3_history.history["cosine_similarity"], label='cosine_similarity')
-plt.plot(model_3_history.history["val_cosine_similarity"], label='cosine_similarity_val')
-plt.legend()
-plt.title('Model 3')
-plt.show()
-
-plt.plot(model_3_history.history["mse"], label='mse')
-plt.plot(model_3_history.history["val_mse"], label='val_mse')
-plt.legend()
-plt.title('Model 3')
-plt.show()
-
-# formulka do kopiowania do kazdego z modeli
-print("R2_score: ", sklearn.metrics.r2_score(y_test_scaled, y_predicted))
-print("mean_squared_error: ", sklearn.metrics.mean_squared_error(y_test_scaled, y_predicted))
-print("mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_test_scaled, y_predicted))
-print("mean_absolute_percentage_error", sklearn.metrics.mean_absolute_percentage_error(y_test_scaled, y_predicted))
-
- #Model 4 - opcjonalny - wyrzucenie z datasetu kolumny 'price' ktora jest silnie skorelowana(0,5)  z 'quantity'
- #jest to kopia modelu 2 (najszybciej sie robi xd)
-
+#
+#plt.plot(model_3_history.history["cosine_similarity"], label='cosine_similarity')
+#plt.plot(model_3_history.history["val_cosine_similarity"], label='cosine_similarity_val')
+#plt.legend()
+#plt.title('Model 3')
+#plt.show()
+#
+#plt.plot(model_3_history.history["mse"], label='mse')
+#plt.plot(model_3_history.history["val_mse"], label='val_mse')
+#plt.legend()
+#plt.title('Model 3')
+#plt.show()
+#
+## formulka do kopiowania do kazdego z modeli
+#print("\n\n(TRAIN) R2_score: ", sklearn.metrics.r2_score(y_train_scaled, y_train_predicted))
+#print("(TRAIN) mean_squared_error: ", sklearn.metrics.mean_squared_error(y_train_scaled, y_train_predicted))
+#print("(TRAIN) mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_train_scaled, y_train_predicted))
+#print("(TEST) R2_score: ", sklearn.metrics.r2_score(y_test_scaled, y_test_predicted))
+#print("(TEST) mean_squared_error: ", sklearn.metrics.mean_squared_error(y_test_scaled, y_test_predicted))
+#print("(TEST) mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_test_scaled, y_test_predicted))
+#
+#del y_train_predicted,y_test_predicted
+#Model 4
 x = dataset.drop(['quantity', 'price'], axis=1).copy()
 y = dataset['quantity'].copy()
 y -= 1
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, test_size=0.2, random_state=42, shuffle=False)
+
 x_scaler = StandardScaler().fit(x_train)
 x_train_scaled = x_scaler.transform(x_train)
 x_test_scaled = x_scaler.transform(x_test)
+
 y_scaler = StandardScaler().fit(y_train.values.reshape(-1, 1))
 y_train_scaled = y_scaler.transform(y_train.values.reshape(-1, 1))
 y_test_scaled = y_scaler.transform(y_test.values.reshape(-1, 1))
-model_2 = keras.models.Sequential([
+
+
+model_4 = keras.models.Sequential([
    keras.layers.Input(shape=x_train.shape[1], name="input"),
    keras.layers.Dense(500, activation="relu"),  # tanh #relu #gelu
-   keras.layers.Dense(500, activation="relu"),
-   keras.layers.Dense(400, activation="relu"),
-   keras.layers.Dense(300, activation="relu"),
-   keras.layers.Dense(250, activation="relu"),
    keras.layers.Dense(200, activation="relu"),
    keras.layers.Dense(100, activation="relu"),
    keras.layers.Dense(1, name="output")  # , activation="softmax")
 ])
-keras.backend.set_epsilon(1)
-model_2.compile(
+model_4.compile(
    loss="mse",  # mae, msle
    optimizer="adam",
    metrics=["msle", "mae", "cosine_similarity"]  # MSLE #MAPE #MASE #R2
 )
-model_2_history = model_2.fit(x_train_scaled, y_train_scaled, epochs=400, validation_data=(x_test_scaled, y_test_scaled))
-y_predicted = model_2.predict(x_test_scaled)
+model_4_history = model_4.fit(x_train_scaled, y_train_scaled, epochs=50, validation_data=(x_test_scaled, y_test_scaled))
+
+y_test_predicted = model_4.predict(x_test_scaled)
 plt.clf()
-plt.scatter(x=y_predicted, y=y_test_scaled, marker='.')
-plt.xlabel('y_predicted')
+fig = plt.figure()
+plt.scatter(x=y_test_predicted, y=y_test_scaled, marker='.')
+plt.xlabel('y_test_predicted')
 plt.ylabel('y_test_scaled')
-plt.title('Model 4')
+plt.title('Model 4 - test')
 plt.show()
-plt.plot(y_predicted[:300], label='Y predicted')
+
+y_train_predicted = model_4.predict(x_train_scaled)
+plt.clf()
+plt.scatter(x=y_train_predicted, y=y_train_scaled, marker='.')
+plt.xlabel('y_train_predicted')
+plt.ylabel('y_train_scaled')
+plt.title('Model 4 - train')
+plt.show()
+
+plt.plot(y_test_predicted[:300], label='Y test predicted')
 plt.plot(y_test_scaled[:300], label='Y test scaled')
-plt.title('Model 4')
 plt.legend()
+plt.title('Model 4 - test')
 plt.show()
-plt.plot(model_2_history.history["loss"], label='loss(mse)')
-plt.plot(model_2_history.history["val_loss"], label='val_loss(mse)')
-plt.title('Model 4')
+
+plt.plot(y_train_predicted[:300], label='Y train predicted')
+plt.plot(y_train_scaled[:300], label='Y train scaled')
 plt.legend()
+plt.title('Model 4 - train')
 plt.show()
-#plt.plot(model_2_history.history["msle"], label='msle')
-#plt.plot(model_2_history.history["val_msle"], label='msle_val')
+
+
+#plt.plot(model_4_history.history["loss"], label='loss(mse)')
+#plt.plot(model_4_history.history["val_loss"], label='val_loss(mse)')
+#plt.title('Model 4')
+#plt.legend()
+#plt.show()
+#
+#plt.plot(model_4_history.history["msle"], label='msle')
+#plt.plot(model_4_history.history["val_msle"], label='msle_val')
 #plt.legend()
 #plt.title('Model 4')
 #plt.show()
-plt.plot(model_2_history.history["mae"], label='mae')
-plt.plot(model_2_history.history["val_mae"], label='mae_val')
-plt.legend()
-plt.title('Model 4')
-plt.show()
-plt.plot(model_2_history.history["cosine_similarity"], label='cosine_similarity')
-plt.plot(model_2_history.history["val_cosine_similarity"], label='cosine_similarity_val')
-plt.legend()
-plt.title('Model 4')
-plt.show()
+#
+#plt.plot(model_4_history.history["mae"], label='mae')
+#plt.plot(model_4_history.history["val_mae"], label='mae_val')
+#plt.legend()
+#plt.title('Model 4')
+#plt.show()
+#
+#plt.plot(model_4_history.history["cosine_similarity"], label='cosine_similarity')
+#plt.plot(model_4_history.history["val_cosine_similarity"], label='cosine_similarity_val')
+#plt.legend()
+#plt.title('Model 4')
+#plt.show()
 
-# formulka do kopiowania do kazdego z modeli
-print("R2_score: ", sklearn.metrics.r2_score(y_test_scaled, y_predicted))
-print("mean_squared_error: ", sklearn.metrics.mean_squared_error(y_test_scaled, y_predicted))
-print("mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_test_scaled, y_predicted))
-#print("mean_absolute_percentage_error",sklearn.metrics.mean_absolute_percentage_error(y_test_scaled, y_predicted))
+print("\n\n(TRAIN) R2_score: ", sklearn.metrics.r2_score(y_train_scaled, y_train_predicted))
+print("(TRAIN) mean_squared_error: ", sklearn.metrics.mean_squared_error(y_train_scaled, y_train_predicted))
+print("(TRAIN) mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_train_scaled, y_train_predicted))
+print("(TEST) R2_score: ", sklearn.metrics.r2_score(y_test_scaled, y_test_predicted))
+print("(TEST) mean_squared_error: ", sklearn.metrics.mean_squared_error(y_test_scaled, y_test_predicted))
+print("(TEST) mean_absolute_error: ", sklearn.metrics.mean_absolute_error(y_test_scaled, y_test_predicted))
