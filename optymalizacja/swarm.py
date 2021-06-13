@@ -7,7 +7,8 @@ c1 = 0.8
 c2 = 0.9
 
 n_iterations = int(input("Inform the number of iterations: "))
-target_error = float(input("Inform the target error: "))
+target_error = 0.01
+#target_error = float(input("Inform the target error: "))
 n_particles = int(input("Inform the number of particles: "))
 
 
@@ -26,13 +27,13 @@ class Particle():
 
         #Matyas function x,yE<-10;10>
         #min 0,0
-        #self.position = np.array([(-1) ** (bool(random.getrandbits(1))) * random.random() * 10,
-        #    (-1) ** (bool(random.getrandbits(1))) * random.random() * 10])
+        self.position = np.array([(-1) ** (bool(random.getrandbits(1))) * random.random() * 10,
+            (-1) ** (bool(random.getrandbits(1))) * random.random() * 10])
 
         #Booth function x,yE<-10;10>
         #min 1,3
-        self.position = np.array([(-1) ** (bool(random.getrandbits(1))) * random.random() * 10,
-                (-1) ** (bool(random.getrandbits(1))) * random.random() * 10])
+        #self.position = np.array([(-1) ** (bool(random.getrandbits(1))) * random.random() * 10,
+        #        (-1) ** (bool(random.getrandbits(1))) * random.random() * 10])
 
         self.pbest_position = self.position
         self.pbest_value = float('inf')
@@ -81,13 +82,13 @@ class Space():
 
         # Matyas function x,yE<-10;10>
         # dziala
-        # return 0.26 * ((particle.position[0] ** 2) + (particle.position[1] ** 2)) - 0.48 * particle.position[0] * \
-        #       particle.position[1]
+        return 0.26 * ((particle.position[0] ** 2) + (particle.position[1] ** 2)) - 0.48 * particle.position[0] * \
+               particle.position[1]
 
         # Booth function x,yE<-10;10>
         # dziala
-        return (particle.position[0] + (2 * particle.position[1]) - 7)**2 + ((2 * particle.position[0]) + \
-                                                                             particle.position[1] - 5)**2
+        #return (particle.position[0] + (2 * particle.position[1]) - 7)**2 + ((2 * particle.position[0]) + \
+        #                                                                     particle.position[1] - 5)**2
 
 
     def set_pbest(self):
