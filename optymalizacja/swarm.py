@@ -1,7 +1,8 @@
 import random
 import numpy as np
-
+#od W zalezny jest skok predkosci w kolejnej iteracji
 W = 0.5
+#c1 i c2 biora udzial w porownaniu nowej pozycji czastki w obrebie punktu(c1) i calej populacji punktow(c2)
 c1 = 0.8
 c2 = 0.9
 
@@ -17,17 +18,25 @@ class Particle():
         # 4 minima
         #self.position = np.array([(-1) ** (bool(random.getrandbits(1))) * random.random() * 5,
         #                          (-1) ** (bool(random.getrandbits(1))) * random.random() * 5])
+
         # Beale function x,yE<-4.5;4.5>
         # min 3,0.5
-        self.position = np.array([(-1) ** (bool(random.getrandbits(1))) * random.random() * 4.5,
-                                  (-1) ** (bool(random.getrandbits(1))) * random.random() * 4.5])
+        #self.position = np.array([(-1) ** (bool(random.getrandbits(1))) * random.random() * 4.5,
+        #                          (-1) ** (bool(random.getrandbits(1))) * random.random() * 4.5])
+
         #Matyas function x,yE<-10;10>
         #min 0,0
         #self.position = np.array([(-1) ** (bool(random.getrandbits(1))) * random.random() * 10,
         #    (-1) ** (bool(random.getrandbits(1))) * random.random() * 10])
-#
+
+        #Booth function x,yE<-10;10>
+        #min 1,3
+        self.position = np.array([(-1) ** (bool(random.getrandbits(1))) * random.random() * 10,
+                (-1) ** (bool(random.getrandbits(1))) * random.random() * 10])
+
         self.pbest_position = self.position
         self.pbest_value = float('inf')
+        #velocity okresla w jakim kierunku i jak bardzo czasteczka ma ruszyc w kolejnej iteracji
         self.velocity = np.array([0, 0])
 
     def __str__(self):
@@ -35,6 +44,7 @@ class Particle():
         print("I am at ", self.position, " meu point best is ", self.pbest_position)
 
     def move(self):
+        #wyznaczenie nowej pozycji czastki
         self.position = self.position + self.velocity
 
 
@@ -45,6 +55,7 @@ class Space():
         self.target_error = target_error
         self.n_particles = n_particles
         self.particles = []
+        #musi byc tu jak najwieksza liczba aby nie przeoczono minimum
         self.gbest_value = float('inf')
         self.gbest_position = np.array([random.random() * 50, random.random() * 50])
 
@@ -52,33 +63,35 @@ class Space():
         for particle in self.particles:
             particle.__str__()
 
-    # funkcja do optymalizacji -> tutajj f(x,y)= x^2 + y^2 + 1
-    # TODO:
-    # wybrac 3 funkcje z tego linku do optymalizacji
-    # https://en.wikipedia.org/wiki/Test_functions_for_optimization
-
     # definicja wzorow optymalizowanych funkcji
     def fitness(self, particle):
 
         ###jesli tu cos zmieniasz to musisz jednoczesnie zmienic wyzej obszary losowania punktow!###
-        # TODO zrobic wypisywanie wartosci funkcji dla znalezionego minimum
+
         # Himmelblau's function	 x,yE<-5;5>
-        #git - podaje jedno z minimow ale mozna sie pobawic z inputem by zwrocilo inne z mozliwych minimow
+        #dziala - podaje jedno z minimow ale mozna sie pobawic z inputem by moze zwrocilo inne z mozliwych minimow
         #return (particle.position[0]**2 + particle.position[1]-11)**2+(particle.position[0]+ \
         #                                                               (particle.position[1]**2)-7)**2
 
         # Beale function x,yE<-4.5;4.5>
-        # dziala 
-        return ((1.5 - particle.position[0] + particle.position[0]*particle.position[1])**2) + \
-               ((2.25 - particle.position[0] + particle.position[0]*(particle.position[1]**2))**2) + \
-               ((2.625 - particle.position[0] + particle.position[0]*(particle.position[1]**3))**2)
+        # dziala
+        #return ((1.5 - particle.position[0] + particle.position[0]*particle.position[1])**2) + \
+        #       ((2.25 - particle.position[0] + particle.position[0]*(particle.position[1]**2))**2) + \
+        #       ((2.625 - particle.position[0] + particle.position[0]*(particle.position[1]**3))**2)
 
         # Matyas function x,yE<-10;10>
-        # dziala, zwraca wspolrzedne bliskie 0
-        # 0.26 * ((particle.position[0] ** 2) + (particle.position[1] ** 2)) - 0.48 * particle.position[0] * \
+        # dziala
+        # return 0.26 * ((particle.position[0] ** 2) + (particle.position[1] ** 2)) - 0.48 * particle.position[0] * \
         #       particle.position[1]
 
+        # Booth function x,yE<-10;10>
+        # dziala
+        return (particle.position[0] + (2 * particle.position[1]) - 7)**2 + ((2 * particle.position[0]) + \
+                                                                             particle.position[1] - 5)**2
+
+
     def set_pbest(self):
+        #nadpisanie lokalnych wspolrzednych jesli znaleziono lepsza wartosc w nowym punkcie
         for particle in self.particles:
             fitness_cadidate = self.fitness(particle)
             if (particle.pbest_value > fitness_cadidate):
@@ -86,6 +99,7 @@ class Space():
                 particle.pbest_position = particle.position
 
     def set_gbest(self):
+        #to samo tylko dla calej populacji a nie lokalnie
         for particle in self.particles:
             best_fitness_cadidate = self.fitness(particle)
             if (self.gbest_value > best_fitness_cadidate):
@@ -93,6 +107,7 @@ class Space():
                 self.gbest_position = particle.position
 
     def move_particles(self):
+        #wyznaczenie nowych wektorow predkosci
         for particle in self.particles:
             global W
             new_velocity = (W * particle.velocity) + (c1 * random.random()) * (
@@ -116,7 +131,10 @@ while (iteration < n_iterations):
     if (abs(search_space.gbest_value - search_space.target) <= search_space.target_error):
         break
 
+    #wyznacznie nowych wektorow predkosci i przejscie do kolejnej iteracji
     search_space.move_particles()
     iteration += 1
 
-print("The best solution is: ", search_space.gbest_position, " in n_iterations: ", iteration)
+
+
+print("\nThe best solution is: ", search_space.gbest_position, "\nMin value is: ", search_space.gbest_value, "\nNumber of iterations: ", iteration)
