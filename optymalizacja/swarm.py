@@ -19,13 +19,13 @@ class Particle():
         #                          (-1) ** (bool(random.getrandbits(1))) * random.random() * 5])
         # Beale function x,yE<-4.5;4.5>
         # min 3,0.5
-        #self.position = np.array([(-1) ** (bool(random.getrandbits(1))) * random.random() * 4.5,
-        #                          (-1) ** (bool(random.getrandbits(1))) * random.random() * 4.5])
+        self.position = np.array([(-1) ** (bool(random.getrandbits(1))) * random.random() * 4.5,
+                                  (-1) ** (bool(random.getrandbits(1))) * random.random() * 4.5])
         #Matyas function x,yE<-10;10>
         #min 0,0
-        self.position = np.array([(-1) ** (bool(random.getrandbits(1))) * random.random() * 10,
-            (-1) ** (bool(random.getrandbits(1))) * random.random() * 10])
-
+        #self.position = np.array([(-1) ** (bool(random.getrandbits(1))) * random.random() * 10,
+        #    (-1) ** (bool(random.getrandbits(1))) * random.random() * 10])
+#
         self.pbest_position = self.position
         self.pbest_value = float('inf')
         self.velocity = np.array([0, 0])
@@ -68,15 +68,15 @@ class Space():
         #                                                               (particle.position[1]**2)-7)**2
 
         # Beale function x,yE<-4.5;4.5>
-        # na razie sie wyjebuje bo wychodzi poza zakres obszaru, potem przeanalizuje czy skladnia wzoru jest na pewno prawidlowa
-        #return ((1.5 - particle.position[0]+particle.position[0]*particle.position[1])**2) + \
-        #       (2.25 - particle.position[0]+  (particle.position[0]*(particle.position[1]**2))**2) + \
-        #       (2.625 - particle.position[0] + ((particle.position[0]*(particle.position[1]**3))**2))
+        # dziala 
+        return ((1.5 - particle.position[0] + particle.position[0]*particle.position[1])**2) + \
+               ((2.25 - particle.position[0] + particle.position[0]*(particle.position[1]**2))**2) + \
+               ((2.625 - particle.position[0] + particle.position[0]*(particle.position[1]**3))**2)
 
         # Matyas function x,yE<-10;10>
-        # na razie sie wyjebuje bo wychodzi poza zakres obszaru
-        return 0.26 * ((particle.position[0] ** 2) + (particle.position[0] ** 2)) - 0.48 * particle.position[0] * \
-               particle.position[1]
+        # dziala, zwraca wspolrzedne bliskie 0
+        # 0.26 * ((particle.position[0] ** 2) + (particle.position[1] ** 2)) - 0.48 * particle.position[0] * \
+        #       particle.position[1]
 
     def set_pbest(self):
         for particle in self.particles:
